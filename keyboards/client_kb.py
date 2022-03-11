@@ -46,7 +46,7 @@ vb10 = InlineKeyboardButton('Sirdaryo', callback_data='Sirdaryo')
 vb11 = InlineKeyboardButton('Surxandaryo', callback_data='Surxandaryo')
 vb12 = InlineKeyboardButton('Toshkent', callback_data='Toshkent')
 vb13 = InlineKeyboardButton('Xorazm', callback_data='Xorazm')
-vb14 = InlineKeyboardButton('Toshkent shaxar', callback_data='Toshkent')
+vb14 = InlineKeyboardButton('Toshkent shaxar', callback_data='Toshkent_shaxar')
 
 States_kb = InlineKeyboardMarkup()
 States_kb.row(vb1, vb2)
@@ -421,8 +421,21 @@ Toshkent_shkb.row(b_cancel, b_clear)
 print_b = InlineKeyboardButton('✅ Yuborish', callback_data='print')
 discard_b = InlineKeyboardButton('❌ Bekor qilish', callback_data='discard')
 kb_send = InlineKeyboardMarkup()
-kb_send.row(b_cancel, b_clear)
+kb_send.row(discard_b, print_b)
+
+# send_b = KeyboardButton("✅ Yuborish")
+# discard_m= KeyboardButton("❌ Bekor qilish")
+# kb_send_admin = ReplyKeyboardMarkup(resize_keyboard=True)
+# kb_send_admin.add(discard_m, send_b)
+
 
 # Check
 kb_check = InlineKeyboardMarkup()
 kb_check.row(b_cancel, b_clear)
+
+# Admin Print to Channel
+print_to_channel_b = InlineKeyboardButton('✅ Kanalga chop etish', callback_data='printtochannel')
+discard_b = InlineKeyboardButton('❌ Rad etish', callback_data='discardtouser')
+kb_print_to_channel = InlineKeyboardMarkup()
+kb_print_to_channel.row(discard_b)
+kb_print_to_channel.row(print_to_channel_b)
