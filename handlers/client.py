@@ -30,39 +30,51 @@ class Form(StatesGroup):
 
 @dp.message_handler(commands=['start', 'help'])
 async def command_start(message: types.Message):
+    chat_id = message.chat.id
     await bot.send_message(message.from_user.id, "Botimizga Xush kelibsiz!",
                            reply_markup=kb_bosh_menu)
+
+    # await bot.forward_message(chat_id, chat_id, message_id=500)
     # await bot.delete_message(message.from_user.id, message.message_id)
     # await bot.delete_message(message.from_user.id, message.message_id-1)
 
 
 # Main menu commands
 @dp.message_handler()
-async def ad_Start(message: types.Message):
+async def adStart(message: types.Message):
     """
     📜E`lon berish
     """
     chat_id = message.chat.id
-    if message.text == '📜E`lon berish':
+    if message.text == "📜E'lon berish":
         await bot.delete_message(message.from_user.id, message.message_id - 1)
         await Form.name.set()
-        await bot.send_message(chat_id, "E`lon nomini kiriting")
+        await bot.send_message(chat_id, "E'lon nomini kiriting")
+    else:
+        await message.reply("Tushunarsiz buyruq.\nQayta ishga tushiring! /start")
 
 
-@dp.callback_query_handler()
-async def ClearForm(call: types.CallbackQuery, state: FSMContext):
-    # await bot.delete_message(call.from_user.id, call.message.message_id)
+@dp.callback_query_handler(text="discard", state="*")
+async def Discard(query: types.CallbackQuery, state: FSMContext):
+    await state.reset_state(with_data=True)
+    await query.message.delete()
+    await bot.send_message(query.from_user.id, "E'lon bekor qilindi", reply_markup=kb_bosh_menu)
 
-    if call.data == '❌ Bekor qilish':
-        current_state = await state.get_state()
-        if current_state is None:
-            return
-        logging.info('Elon  bekor qilindi!', current_state)
-        await state.finish()
-        await bot.send_message(
-            call.from_user.id,
-            "E'lon bekor qilindi. /start buyrug'idan foydalaning",
-            reply_markup=types.ReplyKeyboardRemove())
+
+# @dp.callback_query_handler(state="*")
+# async def backadName(call: types.CallbackQuery, state: FSMContext):
+#     chat_id = call.message.chat.id
+#     if call.data == "last_kb1":
+#         await bot.delete_message(call.from_user.id, call.message.message_id)
+#         await Form.previous()
+#         await bot.send_message(chat_id, "E'lon nomini kiriting")
+#     elif call.data == "last_kb2":
+#         await bot.delete_message(call.from_user.id, call.message.message_id)
+#         await Form.previous()
+#         await bot.send_message(chat_id, "E'lon turini kiriting!")
+
+    # await Form.name.set()
+    # await bot.send_message(chat_id, "E'lon nomini kiriting")
 
 
 @dp.message_handler(state=Form.name)
@@ -71,8 +83,8 @@ async def adName(message: types.Message, state: FSMContext):
     process advertisement name
     """
     # await bot.delete_message(message.from_user.id, message.message_id)
-    # await bot.delete_message(message.from_user.id, message.message_id-1)
     chat_id = message.chat.id
+
     async with state.proxy() as data:
         data['name'] = message.text
     await Form.next()
@@ -82,6 +94,20 @@ async def adName(message: types.Message, state: FSMContext):
                            reply_markup=categories, parse_mode=ParseMode.MARKDOWN_V2
                            )
 
+#
+# @dp.callback_query_handler(text="last_kb2", state="category")
+# async def backadCategory(call: types.CallbackQuery, state: FSMContext):
+#     chat_id = call.message.chat.id
+#     await bot.delete_message(call.from_user.id, call.message.message_id)
+#     await Form.previous()
+#     async with state.proxy() as data:
+#         await bot.send_message(chat_id,
+#                                f"✅ 1 Qabul qilindi\n*{str(data['name']).title()}*\n\n"
+#                                f"*{str(call.message.text).title()}*\n\n"
+#                                f"1 E'lon turini tanlang❗",
+#                                reply_markup=categories, parse_mode=ParseMode.MARKDOWN_V2
+#                                )
+
 
 @dp.callback_query_handler(state=Form.category)
 async def adCategory(call: types.CallbackQuery, state: FSMContext):
@@ -89,6 +115,7 @@ async def adCategory(call: types.CallbackQuery, state: FSMContext):
     process advertisement category
     """
     chat_id = call.from_user.id
+
     await bot.delete_message(call.from_user.id, call.message.message_id)
     # await bot.delete_message(call.from_user.id, call.message.message_id-1)
 
@@ -99,6 +126,17 @@ async def adCategory(call: types.CallbackQuery, state: FSMContext):
                            f"✅ Qabul qilindi\n\n<b>{call.data}</b>\n\nViloyatni tanlang❗️",
 
                            reply_markup=States_kb, parse_mode=ParseMode.HTML)
+
+
+# @dp.callback_query_handler(text="last_kb3", state="teritory")
+# async def backadTeritory(call: types.CallbackQuery, state: FSMContext):
+#     chat_id = call.message.chat.id
+#     await bot.delete_message(call.from_user.id, call.message.message_id)
+#     await Form.teritory.set()
+#     await bot.send_message(chat_id,
+#                            f"✅ Qabul qilindi\n\n<b>{call.data}</b>\n\nViloyatni tanlang❗️",
+#
+#                            reply_markup=States_kb, parse_mode=ParseMode.HTML)
 
 
 @dp.callback_query_handler(state=Form.teritory)
@@ -285,6 +323,11 @@ async def SendAdmin(call: types.CallbackQuery, state: FSMContext):
         await bot.send_message(chat_id, "E'lon bekor qilindi!", reply_markup=kb_bosh_menu)
 
     await state.finish()
+
+
+@dp.message_handler()
+async def Listener_messages(message: types.Message):
+    await message.answer(f"Xush kelibsiz {message.from_user.first_name}</b>", parse_mode=ParseMode.HTML)
 
 
 def register_handlers_client(dp: Dispatcher):
