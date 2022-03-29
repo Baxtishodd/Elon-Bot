@@ -1,6 +1,7 @@
 import asyncio
 
 from aiogram import Bot, Dispatcher, executor, filters, types
+from aiogram.types import ParseMode
 
 API_TOKEN = '5099386865:AAHgg8Rug1s-CVi7dcdTqulbMfxSd9yviRQ'
 
@@ -39,25 +40,43 @@ dp = Dispatcher(bot)
 #     # await bot.send_message(message.chat.id, f"{media}")
 #     await bot.send_media_group(message.chat.id, media=media)
 
-
+medlist = []
+media = types.MediaGroup()
 @dp.message_handler(content_types=['photo'])
 async def photo_handling(message: types.Message):
-
     # Good bots should send chat actions...
     await types.ChatActions.upload_photo()
 
     # Create media group
-    media = types.MediaGroup()
+    # media.attach_photo(message.photo[-1].file_id, caption=message.caption)
+
+    medlist.append(message.photo[-1].file_id)
 
 
-    # media.attach_photo(types.InputFile('data/img.png'), 'Cat! Caption here!!!')
-    # media.attach_photo(types.InputFile('data/img_1.png'))
-    # media.attach_photo('http://lorempixel.com/400/200/cats/')
-
-    media.attach_photo(message.photo[-1].file_id, caption=message.caption)
+    # await bot.send_media_group(message.chat.id, media=media)
 
 
-    await bot.send_media_group(message.chat.id, media=media)
+@dp.message_handler()
+async def echo_handler(message: types.Message):
+
+    text = message.text
+
+    if text == "show":
+        media.attach_photo(medlist[0],
+                           caption=f"<b>.title</b>\n"
+                               f"🔍<b>Turi:</b>test\n"
+                               f"<b>Viloyati:</b> test\n"
+                               f"<b>Hududi:</b> test\n"
+                               f"<b>Manzili:</b> test\n"
+                               f"📞 <b>Telefon:</b> test\n"
+                               f"📎<b>Qo'shimcha:</b> test\n"
+                               f"#test 》 #test\n"
+                               f"#test\n"
+                               f"Kanalimizga obuna bo'ling!", parse_mode=ParseMode.HTML)
+        # await bot.send_message(message.chat.id, f"{medlist}")
+        for i in medlist[1::]:
+            media.attach_photo(i)
+        await bot.send_media_group(message.chat.id, media=media)
 
 
 if __name__ == '__main__':

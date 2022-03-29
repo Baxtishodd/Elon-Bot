@@ -26,6 +26,7 @@ class Form(StatesGroup):
     phone = State()
     info = State()
     send = State()
+    photo_list = []
 
 
 @dp.message_handler(commands=['start', 'help'])
@@ -73,8 +74,8 @@ async def Discard(query: types.CallbackQuery, state: FSMContext):
 #         await Form.previous()
 #         await bot.send_message(chat_id, "E'lon turini kiriting!")
 
-    # await Form.name.set()
-    # await bot.send_message(chat_id, "E'lon nomini kiriting")
+# await Form.name.set()
+# await bot.send_message(chat_id, "E'lon nomini kiriting")
 
 
 @dp.message_handler(state=Form.name)
@@ -93,6 +94,7 @@ async def adName(message: types.Message, state: FSMContext):
                            f"E'lon turini tanlang❗",
                            reply_markup=categories, parse_mode=ParseMode.MARKDOWN_V2
                            )
+
 
 #
 # @dp.callback_query_handler(text="last_kb2", state="category")
@@ -227,20 +229,27 @@ async def adAddress(message: types.Message, state: FSMContext):
                                     f"#{message.text} Rasm yuboring!")
 
 
+media = types.MediaGroup()
+
+
 @dp.message_handler(content_types=['photo'], state=Form.picture)
 async def adPicture(message: types.Message, state: FSMContext):
     """
     process advertisement picture
     """
     chat_id = message.chat.id
-    file_id = message.photo[-1].file_id
+    file_id = message.photo[1].file_id
+    Form.photo_list.append(file_id)
+
     async with state.proxy() as data:
         data['picture'] = file_id
-    await Form.next()
-    await bot.send_photo(chat_id,
-                         photo=file_id,
-                         caption="✅ Qabul qilindi\n\nTelefon Raqamingizni kiriting",
-                         parse_mode=ParseMode.HTML)
+    # await Form.next()
+
+    await bot.send_message(chat_id,
+                           f"✅ Qabul qilindi\n\nTelefon Raqamingizni kiriting "
+                           f"{Form.photo_list}",
+                           parse_mode=ParseMode.HTML)
+
 
 
 @dp.message_handler(state=Form.phone)
@@ -259,7 +268,7 @@ async def adPhone(message: types.Message, state: FSMContext):
                            parse_mode=ParseMode.HTML)
 
 
-@dp.message_handler(state=Form.info)
+@dp.message_handler()
 async def adAdInfo(message: types.Message, state: FSMContext):
     """
     process ad additional info
@@ -268,26 +277,28 @@ async def adAdInfo(message: types.Message, state: FSMContext):
     async with state.proxy() as data:
         data['info'] = message.text
     await Form.next()
+    if message.text == "show":
+        media.attach_photo(Form.photo_list[0],
+                           caption=f"<b>{str(data['name']).title()}</b>\n"
+                                   f"🔍<b>Turi:</b>{data['category']}\n"
+                                   f"<b>Viloyati:</b> {data['teritory']}\n"
+                                   f"<b>Hududi:</b> {data['city']}\n"
+                                   f"<b>Manzili:</b> {data['address']}\n"
+                                   f"📞 <b>Telefon:</b> {data['phone']}\n"
+                                   f"📎<b>Qo'shimcha:</b> {data['info']}\n"
+                                   f"#{data['teritory']} 》 #{data['city']} 》 #{str(data['address']).title()}\n"
+                                   f"#{data['category']}\n"
+                                   f"Kanalimizga obuna bo'ling!"
+                                   f"{Form.photo_list}", parse_mode=ParseMode.HTML)
 
-    await bot.send_photo(chat_id,
-                         photo=data['picture'],
-                         caption=f"<b>{str(data['name']).title()}</b>\n"
-                                 f"🔍<b>Turi:</b>{data['category']}\n"
-                                 f"<b>Viloyati:</b> {data['teritory']}\n"
-                                 f"<b>Hududi:</b> {data['city']}\n"
-                                 f"<b>Manzili:</b> {data['address']}\n"
-                                 f"📞 <b>Telefon:</b> {data['phone']}\n"
-                                 f"📎<b>Qo'shimcha:</b> {data['info']}\n"
-                                 f"#{data['teritory']} 》 #{data['city']} 》 #{str(data['address']).title()}\n"
-                                 f"#{data['category']}\n"
-                                 f"Kanalimizga obuna bo'ling!",
-                         parse_mode=ParseMode.HTML,
-                         reply_markup=kb_send)
+        for i in Form.photo_list[1::]:
+            media.attach_photo(i)
 
-    await bot.send_message(chat_id, "Tastiqlang!")
+        await bot.send_media_group(chat_id, media=media)
+        await bot.send_message(chat_id, "Tastiqlang!")
 
 
-@dp.callback_query_handler(state=Form.send)
+@dp.callback_query_handler()
 async def SendAdmin(call: types.CallbackQuery, state: FSMContext):
     """
     Send post to admin
