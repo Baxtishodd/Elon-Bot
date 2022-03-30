@@ -73,7 +73,6 @@ async def echo_handler(message: types.Message):
                                f"#test 》 #test\n"
                                f"#test\n"
                                f"Kanalimizga obuna bo'ling!", parse_mode=ParseMode.HTML)
-        # await bot.send_message(message.chat.id, f"{medlist}")
         for i in medlist[1::]:
             media.attach_photo(i)
         await bot.send_media_group(message.chat.id, media=media)

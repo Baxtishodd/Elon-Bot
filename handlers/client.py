@@ -2,12 +2,13 @@ import logging
 # import aiogram.utils.markdown as md
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import state
-
 from create_bot import dp, bot
 from keyboards import *
 from aiogram.dispatcher.filters.state import State, StatesGroup
 from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode
+from database import sqlite_db
+from keyboards import client_kb
 
 # Admin id
 ADMIN = '555278365'
@@ -341,5 +342,14 @@ async def Listener_messages(message: types.Message):
     await message.answer(f"Xush kelibsiz {message.from_user.first_name}</b>", parse_mode=ParseMode.HTML)
 
 
+@dp.message_handler(commands=['elonlarim'])
+async def showMyAdvertisement(message: types.Message):
+   await sqlite_db.show_adv(message)
+
+
+    # for ret in cur.execute("SELECT * FROM advertisements").fetchall():
+    #     await bot.send_media_group()
+
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(command_start, commands=['start', 'help'])
+    dp.register_message_handler(showMyAdvertisement, commands=['elonlarim'])

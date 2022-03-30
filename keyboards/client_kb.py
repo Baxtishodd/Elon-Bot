@@ -426,3 +426,9 @@ discard_b = InlineKeyboardButton("❌ Rad etish", callback_data="discardtouser")
 kb_print_to_channel = InlineKeyboardMarkup()
 kb_print_to_channel.row(discard_b)
 kb_print_to_channel.row(print_to_channel_b)
+
+
+# commands
+advertisement = KeyboardButton('/elonlarim')
+kb_ad = ReplyKeyboardMarkup(resize_keyboard=True)
+kb_ad.add(advertisement)
