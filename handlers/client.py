@@ -1,5 +1,4 @@
 import logging
-# import aiogram.utils.markdown as md
 from aiogram import types, Dispatcher
 from aiogram.dispatcher.filters import state
 from create_bot import dp, bot
@@ -30,16 +29,50 @@ class Form(StatesGroup):
     photo_list = []
 
 
+ID = None
+
+
+class Users(StatesGroup):
+    firstname = State()
+    phonenumber = State()
+    username = None
+    user_id = None
+
+
 @dp.message_handler(commands=['start', 'help'])
 async def command_start(message: types.Message):
-    chat_id = message.chat.id
-    await bot.send_message(message.from_user.id, "Botimizga Xush kelibsiz!",
-                           reply_markup=kb_bosh_menu)
+    chat_id = message.from_user.id
+    await bot.send_message(message.from_user.id, "Botimizga Xush kelibsiz!", reply_markup=kb_bosh_menu)
 
-    # await bot.forward_message(chat_id, chat_id, message_id=500)
-    # await bot.delete_message(message.from_user.id, message.message_id)
-    # await bot.delete_message(message.from_user.id, message.message_id-1)
+    if chat_id not in [sqlite_db.all_users_id()]:
+        await bot.send_message(chat_id, "Siz ro'yhatdan o'tmagansiz! \nIsmingizni kiriting")
+        print(sqlite_db.all_users_id())
 
+
+# Add new user to database
+@dp.message_handler(state=Users.firstname)
+async def addUserName(message: types.Message, state: FSMContext):
+    firstname = message.text
+    chat_id = message.from_user.id
+
+    async with state.proxy() as data:
+        data['firstname'] = message.text
+    await Users.next()
+    await message.answer("Telefon raqamingizni yuboring")
+
+
+@dp.message_handler(state=Users.firstname)
+async def addUserPhone(message: types.Message, state: FSMContext):
+    firstname = message.text
+    chat_id = message.from_user.id
+
+    Users.user_id = message.from_user.id
+    Users.username = message.from_user.username
+    async with state.proxy() as data:
+        data['phonenumber'] = message.text
+
+    await state.finish()
+    await message.answer("Ma'lumotlaringiz muvaffaqiyatli saqlandi!", reply_markup=kb_bosh_menu)
 
 # Main menu commands
 @dp.message_handler()
@@ -252,7 +285,6 @@ async def adPicture(message: types.Message, state: FSMContext):
                            parse_mode=ParseMode.HTML)
 
 
-
 @dp.message_handler(state=Form.phone)
 async def adPhone(message: types.Message, state: FSMContext):
     """
@@ -344,11 +376,11 @@ async def Listener_messages(message: types.Message):
 
 @dp.message_handler(commands=['elonlarim'])
 async def showMyAdvertisement(message: types.Message):
-   await sqlite_db.show_adv(message)
-
+    await sqlite_db.show_adv(message)
 
     # for ret in cur.execute("SELECT * FROM advertisements").fetchall():
     #     await bot.send_media_group()
+
 
 def register_handlers_client(dp: Dispatcher):
     dp.register_message_handler(command_start, commands=['start', 'help'])

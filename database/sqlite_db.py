@@ -27,6 +27,10 @@ async def sql_add_adv(state):
         base.commit()
 
 
+async def all_users_id():
+    return cur.execute(f"SELECT user_id FROM Users;")
+
+
 async def show_adv(message):
     for ret in cur.execute("SELECT * FROM advertisements").fetchall():
         media = types.MediaGroup()
@@ -36,3 +40,4 @@ async def show_adv(message):
             media.attach_photo(i)
 
         await bot.send_media_group(message.from_user.id, media=media)
+
