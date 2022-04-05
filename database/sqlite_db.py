@@ -17,7 +17,7 @@ def sql_start():
 
 async def sql_add_user(state):
     async with state.proxy() as data:
-        cur.execute('INSERT INTO users VALUES (?, ?, ?, ?)', tuple(data.values()))
+        cur.execute(f'INSERT INTO users VALUES (?, ?, ?, ?)', tuple(data.values()))
         base.commit()
 
 
